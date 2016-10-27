@@ -1,37 +1,34 @@
-%% A basic ray-tracing acoustic models in 2D dimensions
+%% A basic ray-tracing acoustic models in 3D dimensions
 % Here I use the rectangular room. 
 % Reference: 
 % Author: Wen Xiao
 
 %% Initialization
-%  The model 
-%   __________________________
-%  |                          |
-%  |   * source               |
-%  |                          | W
-%  |         listener *       |
-%  |__________________________|
+%     ___________________________
+%    /|                         /|
+%   / |                        / |
+%  /__________________________/  |H
+%  |  |        * source       |  |
+%  |  |_______________________|__|
+%  |  /                       | W/
+%  | /       listener *       | /
+%  |/_________________________|/
 %               L
 %
 L = 50;         % Set up the length of the room
 W = 30;         % Set up the width of the room
-S = [10 20];    % Set up the position of the sound source
-R = [40 10];    % Set up the position of the listener
+H = 40;         % Set up the height of the room
+S = [10 20 30];    % Set up the position of the sound source
+R = [40 10 10];    % Set up the position of the listener
+N = 100;         % Set up the number of the rays ommited
 %Delta = 0.5;    % Set up the absoption coefficient of the walls
+%alpha = 0.5;    % Set up the air absorption coefficient
 %c = 331.4 + 0.6T
 
-% Here I initialize a matrix storing the image positions of the listener
-% The number of the dimention should be odd to better locate the center
-% case
-
-Dim = 3;              % the dimention of the image matrix (Dim*Dim). 
-Img_lis_x = zeros(Dim,Dim); % Set up the image matrix in x coordinate
-Img_lis_y = zeros(Dim,Dim); % Set up the image matrix in y coordinate
-
-% Compute all the positions of image listeners
-[Img_lis_x,Img_lis_y] = Img_pos(Dim,R,L,W);
-
-%%
+% Here I initialize a matrix storing the directions of each ray
+ray_direc = zeros(100,3);
+ray_direc = ray_direction(ray_direc,N); % Compute all the directions of rays
+%% Reflection computation
 
 
 
