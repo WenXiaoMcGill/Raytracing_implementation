@@ -15,17 +15,18 @@
 %  |/_________________________|/
 %               L
 %
-L = 50;         % Set up the length of the room
-W = 30;         % Set up the width of the room
-H = 40;         % Set up the height of the room
-S = [10 20 30];    % Set up the position of the sound source
-R = [40 10 10];    % Set up the position of the listener
-N = 100;         % Set up the number of the rays ommited
-%delta = 0.5;    % Set up the absoption coefficient of the walls
-%alpha = 0.5;    % Set up the air absorption coefficient
+L = 50;             % Set up the length of the room
+W = 30;             % Set up the width of the room
+H = 40;             % Set up the height of the room
+S = [10 20 30];     % Set up the position of the sound source
+R = [40 10 10];     % Set up the position of the listener
+r = 0.5;             % Set up the radius of listener
+N = 100;            % Set up the number of the rays ommited
+delta = 0.1;        % Set up the absoption coefficient of the walls
+alpha = 0.08;        % Set up the air absorption coefficient
 c = 331.4 + 0.6*20; % Set up the sound speed
-source = S;
-P = 1;   % Set up the power of the sound
+P = 1/N;            % Set up the power of the sound
+P_thresh = 0.0001*P;   % Set up the threshhold of the ray energy
 
 % Here I initialize a matrix storing the direction of each ray
 ray_direc = zeros(100,3);
@@ -38,36 +39,39 @@ plain_point = [L W H; 0 0 0; L W H; 0 0 0; L W H; 0 0 0];
 row = size(plain_vect,1); % calculate the row of the storing matrix
 plain_coef = zeros(row,4);
 for n = 1:1:row
-    plain_coef(n,1:3) = plain_vect(n,:);
-    plain_coef(n,4) = -dot(plain_vect(n,:),plain_point(n,:));
+    plain_coef(n,1:3) = plain_vect(n,:); % denote A B C
+    plain_coef(n,4) = -dot(plain_vect(n,:),plain_point(n,:)); % calculate D
 end
 
+out = zeros(N,2); % Set up output storing matrix
 %% Reflection computation
 
-% see if the ray is reaching the listener
-% calculate the power when the ray reach the listener
-% calculate the time when the ray reach the listenner
-% restore the power and the time
-
-%% Reflection computation
 n = 1;
-temp = dot(ray_direc(n,:),plain_coef(1,1:3)); % to see if the ray is shooting towards the wall
-if temp > 0
-    % calculate the collision point between the light and the wall
-    numer = dot(source,plain_coef(1,1:3))+plain_coef(1,4);
-    domi = dot(ray_direc(n,:), plain_coef(1,1:3));
-    point = source - numer/domi * ray_direc(n,:); 
-    % see if the collision point is in the polygon
-    if point(1) <= L && point(1) >= 0 && point(3) <= H && point(3) >= 0
-        dist = pdist([source; point],'euclidean'); % calculate the distance 
-        source = point; % set the collision point as the new resource
-        % calculate the new direction of the ray
-        temp = dot(ray_direc(n,:)*plain_coef(1,1:3))/sqrt(plain_coef(1,1)^2+plain_coef(1,2)^2+plain_coef(1,3)^2);
-        newdirec = ray_direc(n,:)-2*temp*plain_coef(1,1:3);
-        % calculate the ramaining power of the ray 
-        P = P * exp(alpha*dist) * (1-delta);
-        t = dist/c; % calculate the time spent on the ray (remain refined)
+source = S;
+newdirec = ray_direc(n,:);
+Dist = 0;
+T = 0;
+count = 0;
+while(P > P_thresh)
+    % see if the ray is reaching the listener
+    temp = R-source; 
+    d = norm(cross(temp,newdirec))/norm(newdirec);
+    if d <= r
+        % calculate the power when the ray reach the listener
+        dtemp1 = sqrt(r^2-d^2);
+        dtemp2 = sqrt(norm(temp)^2-d^2);
+        w = P * exp(-alpha*dtemp2);
+        Ps = W * 2*dtemp1/(4/3*pi*r^3);
+        % calculate the time when the ray reach the listenner
+        Ts = T+dtemp2/c;
+        % restore the power and the time
+        out(n,1) = Ps;
+        out(n,2) = Ts;
+        break
     end
-
+    [source,newdirec,dist,P,t] = reflection(source,newdirec,plain_coef,L,W,H,P,delta,alpha,c);
+    T = T+t; % sum the total time
+    Dist = Dist + dist; % sum the total distance
+    count = count + 1;
 end
 
