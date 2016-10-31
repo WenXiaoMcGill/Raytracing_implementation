@@ -15,21 +15,23 @@
 %  |/_________________________|/
 %               L
 %
+clc; clear; 
+
 L = 50;             % Set up the length of the room
 W = 30;             % Set up the width of the room
 H = 40;             % Set up the height of the room
 S = [10 20 30];     % Set up the position of the sound source
 R = [40 10 10];     % Set up the position of the listener
-r = 0.5;             % Set up the radius of listener
-N = 100;            % Set up the number of the rays ommited
+r = 7;             % Set up the radius of listener
+N = 225;            % Set up the number of the rays ommited must be power of 2
 delta = 0.1;        % Set up the absoption coefficient of the walls
 alpha = 0.08;        % Set up the air absorption coefficient
 c = 331.4 + 0.6*20; % Set up the sound speed
-P = 1/N;            % Set up the power of the sound
-P_thresh = 0.0001*P;   % Set up the threshhold of the ray energy
+Po = 1/N;            % Set up the power of the sound
+P_thresh = 0.0000000000001*Po;   % Set up the threshhold of the ray energy
 
 % Here I initialize a matrix storing the direction of each ray
-ray_direc = zeros(100,3);
+ray_direc = zeros(N,3);
 ray_direc = ray_direction(ray_direc,N); % Compute all the directions of rays
 
 % input the statistics of the plain
@@ -45,18 +47,22 @@ end
 
 out = zeros(N,2); % Set up output storing matrix
 %% Reflection computation
-
-n = 1;
+for n = 1:1:N
 source = S;
 newdirec = ray_direc(n,:);
+P = Po;
 Dist = 0;
 T = 0;
 count = 0;
 while(P > P_thresh)
+%while(count < 1)
+%temp = R-source;
+%d = norm(cross(temp,newdirec))/norm(newdirec);
+%while(d > r)
     % see if the ray is reaching the listener
     temp = R-source; 
     d = norm(cross(temp,newdirec))/norm(newdirec);
-    if d <= r
+    if (d <= r)
         % calculate the power when the ray reach the listener
         dtemp1 = sqrt(r^2-d^2);
         dtemp2 = sqrt(norm(temp)^2-d^2);
@@ -67,11 +73,15 @@ while(P > P_thresh)
         % restore the power and the time
         out(n,1) = Ps;
         out(n,2) = Ts;
-        break
+        break;
     end
     [source,newdirec,dist,P,t] = reflection(source,newdirec,plain_coef,L,W,H,P,delta,alpha,c);
     T = T+t; % sum the total time
     Dist = Dist + dist; % sum the total distance
     count = count + 1;
 end
+end
+%% visualization
+out = sortrows(out,2);
+plot(out(:,1));
 
