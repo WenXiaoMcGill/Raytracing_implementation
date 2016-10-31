@@ -1,6 +1,6 @@
 %% A basic ray-tracing acoustic models in 3D dimensions
-% Here I use the rectangular room. 
-% Reference: 
+% Here I use the rectangular room as a basic enclosure. 
+% 
 % Author: Wen Xiao
 
 %% Initialization
@@ -16,9 +16,9 @@
 %               L
 %
 clc; clear; 
-
+tic
 L = 50;             % Set up the length of the room
-W = 30;             % Set up the width of the room
+W = 40;             % Set up the width of the room
 H = 40;             % Set up the height of the room
 S = [10 20 30];     % Set up the position of the sound source
 R = [40 10 10];     % Set up the position of the listener
@@ -28,11 +28,10 @@ delta = 0.005;        % Set up the absoption coefficient of the walls
 alpha = 0.001;        % Set up the air absorption coefficient
 c = 331.4 + 0.6*20; % Set up the sound speed
 Po = 1/N;            % Set up the power of the sound
-P_thresh = 0.0001*Po;   % Set up the threshhold of the ray energy
+P_thresh = 0.001*Po;   % Set up the threshhold of the ray energy
 
 % Here I initialize a matrix storing the direction of each ray
-ray_direc = zeros(N,3);
-ray_direc = ray_direction(ray_direc,N); % Compute all the directions of rays
+ray_direc = ray_direction(N);
 
 % input the statistics of the plain
 plain_vect = [0 1 0; 0 -1 0; 1 0 0; -1 0 0; 0 0 1; 0 0 -1];
@@ -46,7 +45,7 @@ for n = 1:1:row
 end
 out = zeros(N,2); % Set up output storing matrix
 %% Reflection computation
-for n = 1:1:N
+for n = 308
 source = S;
 newdirec = ray_direc(n,:);
 P = Po;
@@ -55,7 +54,8 @@ T = 0;
 count = 0;
 temp = R-source;
 d = norm(cross(temp,newdirec))/norm(newdirec);
-while( P > P_thresh)
+%while( P > P_thresh)
+while( count < 4)
     % see if the ray is reaching the listener
     temp = R-source; 
     d = norm(cross(temp,newdirec))/norm(newdirec);
@@ -79,9 +79,13 @@ while( P > P_thresh)
     count = count + 1;
 end
 end
+
+toc
 %% visualization
 % impulse response
 out = sortrows(out,2);
 stem(out(:,2),out(:,1));
-
-
+title('Indoor Ray Tracing Impulse Response')
+xlabel('Time (s)')
+ylabel('Power')
+grid

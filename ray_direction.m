@@ -1,7 +1,13 @@
-function [ mat ] = ray_direction( mat, N )
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+function [ mat ] = ray_direction( N )
+% Here I generate the directions that each ray emmits from the source
+% point. Rays should be emitted round a sphere. So a sphere is splitted
+% evenly into N pieces. In each pieces I set two random numbers so the
+% ray in this area can ommits at a radom direction.
 
+% Input:   N      --- Number of rays 
+% Output: mat     --- matrix storing the diretion of each ray
+
+mat = zeros(N,3);
 dn = sqrt(N); % calculate the grids of two coordinates
 for n = 0:1:dn-1
     %r1 = rand();
