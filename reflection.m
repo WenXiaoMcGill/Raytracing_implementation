@@ -18,7 +18,7 @@ if temp > 0
         % calculate the new direction of the ray
         temp = dot(newdirec,plain_coef(1,1:3))/sqrt(plain_coef(1,1)^2+plain_coef(1,2)^2+plain_coef(1,3)^2);
         newdirec = newdirec-2*temp*plain_coef(1,1:3);
-        pos = '1'
+        %pos = '1'
         return
     end
 end
@@ -39,7 +39,7 @@ if temp > 0
         % calculate the new direction of the ray
         temp = dot(newdirec,plain_coef(2,1:3))/sqrt(plain_coef(2,1)^2+plain_coef(2,2)^2+plain_coef(2,3)^2);
         newdirec = newdirec-2*temp*plain_coef(2,1:3);
-        pos = '2'
+        %pos = '2'
         return
     end
 end
@@ -60,7 +60,7 @@ if temp > 0
         % calculate the new direction of the ray
         temp = dot(newdirec,plain_coef(3,1:3))/sqrt(plain_coef(3,1)^2+plain_coef(3,2)^2+plain_coef(3,3)^2);
         newdirec = newdirec-2*temp*plain_coef(3,1:3);
-        pos = '3'
+        %pos = '3'
         return
     end
 end
@@ -81,7 +81,7 @@ if temp > 0
         % calculate the new direction of the ray
         temp = dot(newdirec,plain_coef(4,1:3))/sqrt(plain_coef(4,1)^2+plain_coef(4,2)^2+plain_coef(4,3)^2);
         newdirec = newdirec-2*temp*plain_coef(4,1:3);
-        pos = '4'
+        %pos = '4'
         return
     end
 end
@@ -104,7 +104,7 @@ if temp > 0
         temp = dot(newdirec,plain_coef(5,1:3))/sqrt(plain_coef(5,1)^2+plain_coef(5,2)^2+plain_coef(5,3)^2);
         newdirec = newdirec-2*temp*plain_coef(5,1:3);
         %dot(cross(olddirec,newdirec),plain_coef(5,1:3)) % test
-        pos = '5'
+        %pos = '5'
         return
     end
 end
@@ -125,7 +125,7 @@ if temp > 0
         % calculate the new direction of the ray
         temp = dot(newdirec,plain_coef(6,1:3))/sqrt(plain_coef(6,1)^2+plain_coef(6,2)^2+plain_coef(6,3)^2);
         newdirec = newdirec-2*temp*plain_coef(6,1:3);
-        pos = '6'
+        %pos = '6'
         return
     end
 end

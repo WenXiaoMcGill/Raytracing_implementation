@@ -3,7 +3,6 @@ function [ mat ] = ray_direction( mat, N )
 %   Detailed explanation goes here
 
 dn = sqrt(N); % calculate the grids of two coordinates
-dn
 for n = 0:1:dn-1
     %r1 = rand();
     r1 = 0.5;
