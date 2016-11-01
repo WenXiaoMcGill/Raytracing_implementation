@@ -18,7 +18,7 @@
 clc; clear; 
 tic
 L = 50;             % Set up the length of the room
-W = 40;             % Set up the width of the room
+W = 45;             % Set up the width of the room
 H = 40;             % Set up the height of the room
 S = [10 20 30];     % Set up the position of the sound source
 R = [40 10 10];     % Set up the position of the listener
@@ -45,7 +45,7 @@ for n = 1:1:row
 end
 out = zeros(N,2); % Set up output storing matrix
 %% Reflection computation
-for n = 308
+for n = 1:1:N
 source = S;
 newdirec = ray_direc(n,:);
 P = Po;
@@ -54,8 +54,8 @@ T = 0;
 count = 0;
 temp = R-source;
 d = norm(cross(temp,newdirec))/norm(newdirec);
-%while( P > P_thresh)
-while( count < 4)
+while( P > P_thresh)
+%while( count < 5)
     % see if the ray is reaching the listener
     temp = R-source; 
     d = norm(cross(temp,newdirec))/norm(newdirec);
