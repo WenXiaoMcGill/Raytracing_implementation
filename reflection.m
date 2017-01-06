@@ -1,4 +1,4 @@
-function [source,newdirec,dist,P,t] = reflection(source,newdirec,plain_coef,L,W,H,P,delta,alpha,c)
+function [source,newdirec,dist,P,t] = reflection(source,newdirec,plane,wall,vertex,P,delta,alpha,c)
 %  This Function is to find the wall that the ray collides with and compute
 %  the new energy and reflecting direction for that ray. I first have to
 %  find which wall the ray is colliding with. This is determined by seeing
@@ -8,7 +8,7 @@ function [source,newdirec,dist,P,t] = reflection(source,newdirec,plain_coef,L,W,
 
 %  Input: source     --- last source position
 %         newdirec   --- direction of the emmiting ray
-%         plain_coef --- plain coefficients matrix
+%         plain --- plain coefficients matrix
 %         L          --- the length of the room
 %         W          --- the width of the room
 %         H          --- the height of the room
@@ -22,133 +22,75 @@ function [source,newdirec,dist,P,t] = reflection(source,newdirec,plain_coef,L,W,
 %          P         --- power remained after collision
 %          t         --- time spent for the refelction
 
-%% First Wall (North)
-temp = dot(newdirec,plain_coef(1,1:3)); % to see if the ray is shot towards the wall
-if temp > 0
-    % calculate the collision point between the light and the wall
-    numer = dot(source,plain_coef(1,1:3))+plain_coef(1,4);
-    domi = dot(newdirec, plain_coef(1,1:3));
-    point = source - numer/domi * newdirec; 
-    % see if the collision point is in the polygon
-    if point(1) <= L && point(1) >= -1e-14 && point(3) <= H && point(3) >= -1e-14
-        dist = pdist([source; point],'euclidean'); % calculate the distance 
-        % calculate the ramaining power of the ray 
-        P = P * (1-delta)* exp(-alpha*dist);
-        t = dist/c; % calculate the time spent on the ray
-        source = point; % set the collision point as the new resource
-        % calculate the new direction of the ray
-        temp = dot(newdirec,plain_coef(1,1:3))/sqrt(plain_coef(1,1)^2+plain_coef(1,2)^2+plain_coef(1,3)^2);
-        newdirec = newdirec-2*temp*plain_coef(1,1:3);
-        %pos = '1'
-        return
+
+for n = 1:1:size(wall,1)
+    % test if the ray is shot towards the wall
+    temp = dot(newdirec,plane(n,1:3));
+    if temp > 0
+        % calculate the collision point between the light and the wall
+        numer = dot(source,plane(n,1:3))+plane(n,4);
+        domi = dot(newdirec, plane(n,1:3));
+        point = source - numer/domi * newdirec;
+        % see if the collision point is in the polygon
+        % One method used for this study is to form vectors from the point
+        % of intersection to each of the vertices on the boundary of the
+        % mirror plane. The  cross-products of successive pairs of these
+        % vectors are always the vectors that are orthogonal to the
+        % reflecting wall. If each of these normal vectors points in the
+        % same direction, then the point of intersection is inside the
+        % boundary of the reflecting wall. Otherwise it is outside, and
+        % such a ray path is invalid.
+        comp = [];
+        flag = 0;
+        for m = 1:1:size(wall,2)
+            % ensure the vertices number is not zero
+            if wall(n,m) ~= 0 && wall(n,m+1) ~= 0;
+                % test if it is the last point to do the last roduct.
+                temp = cross((vertex(wall(n,m),:)-point),(vertex(wall(n,m+1),:)-point));
+            else if (m == size(wall,2) && wall(n,m)~=0)||(wall(n,m) ~= 0 && wall(n,m+1)==0)
+                    temp = cross((vertex(wall(n,m),:)-point),(vertex(wall(n,1),:)-point));
+                end
+            end
+            % check if comparing vector is empty, if it is not empty, do
+            % the judgement
+            if ~isempty(comp)
+                % decide if two vectors are in the same direction
+                if temp(1)*comp(1)<0 || temp(2)*comp(2)<0 || temp(3)*comp(3)<0
+                    flag = 1;
+                    break
+                end
+            end
+            if isempty(comp)
+                comp = temp;
+            end
+        end
+        % computation after confirming the the right wall
+        if flag ~= 1;
+            dist = pdist([source; point],'euclidean'); % calculate the distance
+            % calculate the ramaining power of the ray
+            P = P * (1-delta)* exp(-alpha*dist);
+            t = dist/c; % calculate the time spent on the ray
+            source = point; % set the collision point as the new resource
+            % calculate the new direction of the ray
+            temp = dot(newdirec,plane(n,1:3))/sqrt(plane(n,1)^2+plane(n,2)^2+plane(n,3)^2);
+            newdirec = newdirec-2*temp*plane(n,1:3);
+            %pos = '1'
+            return
+        end
     end
-end
-%% Second wall (South)
-temp = dot(newdirec,plain_coef(2,1:3)); % to see if the ray is shot towards the wall
-if temp > 0
-    % calculate the collision point between the light and the wall
-    numer = dot(source,plain_coef(2,1:3))+plain_coef(2,4);
-    domi = dot(newdirec, plain_coef(2,1:3));
-    point = source - numer/domi * newdirec; 
-    % see if the collision point is in the polygon
-    if point(1) <= L && point(1) >= -1e-14 && point(3) <= H && point(3) >= -1e-14
-        dist = pdist([source; point],'euclidean'); % calculate the distance 
-        % calculate the ramaining power of the ray 
-        P = P * (1-delta)* exp(-alpha*dist);
-        t = dist/c; % calculate the time spent on the ray
-        source = point; % set the collision point as the new resource
-        % calculate the new direction of the ray
-        temp = dot(newdirec,plain_coef(2,1:3))/sqrt(plain_coef(2,1)^2+plain_coef(2,2)^2+plain_coef(2,3)^2);
-        newdirec = newdirec-2*temp*plain_coef(2,1:3);
-        %pos = '2'
-        return
-    end
-end
-%% Third wall (East)
-temp = dot(newdirec,plain_coef(3,1:3)); % to see if the ray is shot towards the wall
-if temp > 0
-    % calculate the collision point between the light and the wall
-    numer = dot(source,plain_coef(3,1:3))+plain_coef(3,4);
-    domi = dot(newdirec, plain_coef(3,1:3));
-    point = source - numer/domi * newdirec ; 
-    % see if the collision point is in the polygon
-    if point(2) <= W && point(2) >= -1e-14 && point(3) <= H && point(3) >= -1e-14
-        dist = pdist([source; point],'euclidean'); % calculate the distance 
-        % calculate the ramaining power of the ray 
-        P = P * (1-delta)* exp(-alpha*dist);
-        t = dist/c; % calculate the time spent on the ray
-        source = point; % set the collision point as the new resource
-        % calculate the new direction of the ray
-        temp = dot(newdirec,plain_coef(3,1:3))/sqrt(plain_coef(3,1)^2+plain_coef(3,2)^2+plain_coef(3,3)^2);
-        newdirec = newdirec-2*temp*plain_coef(3,1:3);
-        %pos = '3'
-        return
-    end
-end
-%% Fourth wall (West)
-temp = dot(newdirec,plain_coef(4,1:3)); % to see if the ray is shot towards the wall
-if temp > 0
-    % calculate the collision point between the light and the wall
-    numer = dot(source,plain_coef(4,1:3))+plain_coef(4,4);
-    domi = dot(newdirec, plain_coef(4,1:3));
-    point = source - numer/domi * newdirec; 
-    % see if the collision point is in the polygon
-    if point(2) <= W && point(2) >= -1e-14 && point(3) <= H && point(3) >= -1e-14
-        dist = pdist([source; point],'euclidean'); % calculate the distance 
-        % calculate the ramaining power of the ray 
-        P = P * (1-delta)* exp(-alpha*dist);
-        t = dist/c; % calculate the time spent on the ray
-        source = point; % set the collision point as the new resource
-        % calculate the new direction of the ray
-        temp = dot(newdirec,plain_coef(4,1:3))/sqrt(plain_coef(4,1)^2+plain_coef(4,2)^2+plain_coef(4,3)^2);
-        newdirec = newdirec-2*temp*plain_coef(4,1:3);
-        %pos = '4'
-        return
-    end
-end
-%% Fifth wall (Ceiling)
-temp = dot(newdirec,plain_coef(5,1:3)); % to see if the ray is shot towards the wall
-if temp > 0
-    % calculate the collision point between the light and the wall
-    numer = dot(source,plain_coef(5,1:3))+plain_coef(5,4);
-    domi = dot(newdirec, plain_coef(5,1:3));
-    point = source - numer/domi * newdirec;
-    % dot(point,plain_coef(5,1:3))+plain_coef(5,4) %test
-    % see if the collision point is in the polygon
-    if point(1) <= L && point(1) >= -1e-14 && point(2) <= W && point(2) >= -1e-14
-        dist = pdist([source; point],'euclidean'); % calculate the distance 
-        % calculate the ramaining power of the ray 
-        P = P * (1-delta)* exp(-alpha*dist);
-        t = dist/c; % calculate the time spent on the ray
-        source = point; % set the collision point as the new resource
-        % calculate the new direction of the ray
-        temp = dot(newdirec,plain_coef(5,1:3))/sqrt(plain_coef(5,1)^2+plain_coef(5,2)^2+plain_coef(5,3)^2);
-        newdirec = newdirec-2*temp*plain_coef(5,1:3);
-        %dot(cross(olddirec,newdirec),plain_coef(5,1:3)) % test
-        %pos = '5'
-        return
-    end
-end
-%% Sixth Wall (Floor)
-temp = dot(newdirec,plain_coef(6,1:3)); % to see if the ray is shot towards the wall
-if temp > 0
-    % calculate the collision point between the light and the wall
-    numer = dot(source,plain_coef(6,1:3))+plain_coef(6,4);
-    domi = dot(newdirec, plain_coef(6,1:3));
-    point = source - numer/domi * newdirec; 
-    % see if the collision point is in the polygon
-    if point(1) <= L && point(1) >= -1e-14 && point(2) <= W && point(2) >= -1e-14
-        dist = pdist([source; point],'euclidean'); % calculate the distance 
-        % calculate the ramaining power of the ray 
-        P = P * (1-delta)* exp(-alpha*dist);
-        t = dist/c; % calculate the time spent on the ray
-        source = point; % set the collision point as the new resource
-        % calculate the new direction of the ray
-        temp = dot(newdirec,plain_coef(6,1:3))/sqrt(plain_coef(6,1)^2+plain_coef(6,2)^2+plain_coef(6,3)^2);
-        newdirec = newdirec-2*temp*plain_coef(6,1:3);
-        %pos = '6'
-        return
-    end
+    
+    %     if point(1) <= L && point(1) >= -1e-14 && point(3) <= H && point(3) >= -1e-14
+    %         dist = pdist([source; point],'euclidean'); % calculate the distance
+    %         % calculate the ramaining power of the ray
+    %         P = P * (1-delta)* exp(-alpha*dist);
+    %         t = dist/c; % calculate the time spent on the ray
+    %         source = point; % set the collision point as the new resource
+    %         % calculate the new direction of the ray
+    %         temp = dot(newdirec,plain(1,1:3))/sqrt(plain(1,1)^2+plain(1,2)^2+plain(1,3)^2);
+    %         newdirec = newdirec-2*temp*plain(1,1:3);
+    %         %pos = '1'
+    %         return
+    %     end
 end
 end
 
