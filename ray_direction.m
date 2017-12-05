@@ -10,11 +10,11 @@ function [ mat ] = ray_direction( N )
 mat = zeros(N,3);
 dn = sqrt(N); % calculate the grids of two coordinates
 for n = 0:1:dn-1
-    %r1 = rand();
-    r1 = 0.5;
+    r1 = rand();
+%     r1 = 0.5;
     for m = 0:1:dn-1;
-        %r2 = rand();
-        r2 = 0.5;
+        r2 = rand();
+%         r2 = 0.5;
         mat((n*dn+m+1),1) = 2*sqrt((n+r1)/dn-((n+r1)/dn)^2)*cos(2*pi*(m+r2)/dn);
         mat((n*dn+m+1),2) = 2*sqrt((n+r1)/dn-((n+r1)/dn)^2)*sin(2*pi*(m+r2)/dn);
     end

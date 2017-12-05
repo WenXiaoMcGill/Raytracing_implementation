@@ -42,27 +42,41 @@ for n = 1:1:size(wall,1)
         % such a ray path is invalid.
         comp = [];
         flag = 0;
+        th = zeros(1,size(wall,2));
+        endpoint = 0;
         for m = 1:1:size(wall,2)
             % ensure the vertices number is not zero
-            if wall(n,m) ~= 0 && wall(n,m+1) ~= 0;
-                % test if it is the last point to do the last roduct.
-                temp = cross((vertex(wall(n,m),:)-point),(vertex(wall(n,m+1),:)-point));
-            else if (m == size(wall,2) && wall(n,m)~=0)||(wall(n,m) ~= 0 && wall(n,m+1)==0)
-                    temp = cross((vertex(wall(n,m),:)-point),(vertex(wall(n,1),:)-point));
+            % test if it is the last point to do the last product.
+            if (m == size(wall,2) && wall(n,m)~=0)||(wall(n,m) ~= 0 && wall(n,m+1)==0)
+                v1 = vertex(wall(n,m),:)-point;
+                v2 = vertex(wall(n,1),:)-point;
+                temp = cross(v1,v2);
+                theta = acos(dot(v1,v2)/(norm(v1)*norm(v2)));
+                endpoint = 1;
+            else if wall(n,m) ~= 0 && wall(n,m+1) ~= 0;
+                    v1 = vertex(wall(n,m),:)-point;
+                    v2 = vertex(wall(n,m+1),:)-point;
+                    temp = cross(v1,v2);
+                    theta = acos(dot(v1,v2)/(norm(v1)*norm(v2)));
                 end
             end
             % check if comparing vector is empty, if it is not empty, do
             % the judgement
-            if ~isempty(comp)
-                % decide if two vectors are in the same direction
-                if temp(1)*comp(1)<0 || temp(2)*comp(2)<0 || temp(3)*comp(3)<0
-                    flag = 1;
-                    break
-                end
-            end
             if isempty(comp)
                 comp = temp;
             end
+            % decide if two vectors are in the same direction
+            if temp(1)*comp(1)<0 || temp(2)*comp(2)<0 || temp(3)*comp(3)<0
+                th(m) = -theta;
+            else
+                th(m) = theta;
+            end
+            if endpoint == 1;
+                break
+            end
+        end
+        if abs(sum(th)) <= 1.0000e-04
+            flag = 1;
         end
         % computation after confirming the the right wall
         if flag ~= 1;
@@ -70,10 +84,12 @@ for n = 1:1:size(wall,1)
             % calculate the ramaining power of the ray
             P = P * (1-delta)* exp(-alpha*dist);
             t = dist/c; % calculate the time spent on the ray
+            % calculate the new direction of the ray after reflection
+            imsource = Mirror(wall,vertex,source,n,plane);
+            newdirec = point - imsource;
             source = point; % set the collision point as the new resource
-            % calculate the new direction of the ray
-            temp = dot(newdirec,plane(n,1:3))/sqrt(plane(n,1)^2+plane(n,2)^2+plane(n,3)^2);
-            newdirec = newdirec-2*temp*plane(n,1:3);
+%             temp = dot(newdirec,plane(n,1:3))/norm(plane(1:3));
+%             newdirec = newdirec-2*temp*plane(n,1:3);
             %pos = '1'
             return
         end
